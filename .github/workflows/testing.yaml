@@ -14,13 +14,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Set up Node.js 20 for better canvas@2 compatibility
+      # Step 1: Set up Node.js 20 BEFORE CML installation
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
-      # Step 2: Download repository code
+      # Step 2: Check out repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -34,8 +34,8 @@ jobs:
         with:
           python-version: '3.11'
 
-      # Step 5: Train models and generate report
-      - name: Train model and generate report
+      # Step 5: Train models and generate reports
+      - name: Train model
         env:
           REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -44,17 +44,13 @@ jobs:
 
           python train_model.py
 
-          # Create model score report
           echo "# RF and LR Model Scores" > report.md
           cat scores.txt >> report.md
 
-          # Create visualization report
           echo -e "\n# Confusion Matrix and Feature Importance" > report1.md
           echo "![Confusion Matrix](./ConfusionMatrix.png)" >> report1.md
           echo "![Feature Importance](./FeatureImportance.png)" >> report1.md
 
-          # Combine both reports
           cat report.md report1.md > combined_file.md
 
-          # Publish the report using CML
-          cml comment create combined_file.md
+          cml comment create --publish=false combined_file.md
